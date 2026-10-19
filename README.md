@@ -49,6 +49,18 @@ curl "localhost:8000/search?q=Lamins%20have%20no%20effect%20on%20nuclear%20membr
 
 The response includes the ranked results, the detected intent and linked entities, and `latency_ms` for each stage (`understand`, `embed`, `retrieve`, `rerank`, `total`).
 
+## The embedding index
+
+`python -m src.build_index` embeds the corpus once and writes four files to `data/index/`. They are generated, not committed (see `.gitignore`), so rebuild them after cloning.
+
+| File | Contents |
+|---|---|
+| `doc_vectors.npy` | 5,183 × 384 matrix of unit-length MiniLM vectors, one row per document (title + abstract) |
+| `doc_ids.json` | Document ids, in the same order as the vector rows (row *i* belongs to `doc_ids[i]`) |
+| `doc_texts.json` | The title + abstract string for each document, same order. The reranker reads this text, and the API returns snippets from it |
+| `queries.json` | Query id → query text, used by the notebook and the benchmarks |
+
+Keeping the vectors, ids and texts in the same order is what makes the lookup work, so never reorder one without the others.
 ### Docker
 
 ```bash
