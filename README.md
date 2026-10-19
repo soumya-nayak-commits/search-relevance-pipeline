@@ -79,16 +79,41 @@ python -m benchmarks.ann_vs_bruteforce               # FAISS HNSW vs exact: spee
 python -m benchmarks.ann_vs_bruteforce --synthetic 500000
 ```
 
-Latency (CPU, 100 queries, 50 candidates): *not measured yet. Run the command above and paste the table here, with the machine it ran on.*
 
-| stage | p50 (ms) | p95 (ms) |
-|---|---|---|
-| embed | | |
-| retrieve | | |
-| rerank | | |
-| total | | |
+Latency (GitHub Codespaces, CPU only, no GPU, 50 candidates):
 
-ANN vs exact (recall@50 against exact search): *not measured yet.*
+Retrieval only (no reranker), 100 queries:
+
+| stage    | p50 (ms) | p95 (ms) |
+|----------|----------|----------|
+| embed    | 18.8     | 29.8     |
+| retrieve | 0.6      | 1.9      |
+| total    | 19.5     | 30.7     |
+
+Full pipeline with reranker, 20 queries (p95 is rough at this sample size):
+
+| stage    | p50 (ms) | p95 (ms) |
+|----------|----------|----------|
+| embed    | 18.3     | 27.2     |
+| retrieve | 0.6      | 3.1      |
+| rerank   | 9130.9   | 10282.3  |
+| total    | 9158.2   | 10298.6  |
+
+Finding: the cross-encoder accounts for about 99.7% of end-to-end latency on CPU
+(about 9.1 s vs about 20 ms without it). Latency is sequential single-user only;
+concurrency and load were not tested.
+
+ANN vs exact (5,183 vectors, 300 queries, k=50):
+
+| index        | efSearch | ms/query | recall@50 vs exact |
+|--------------|----------|----------|--------------------|
+| flat (exact) | -        | 0.422    | 1.000              |
+| HNSW (M=32)  | 16       | 0.093    | 0.884              |
+| HNSW (M=32)  | 64       | 0.099    | 0.984              |
+| HNSW (M=32)  | 128      | 0.182    | 0.997              |
+
+At 5k vectors exact search is already under 0.5 ms, so ANN gives no practical gain here.
+It is included to show the speed/recall trade-off that matters at larger scale.
 
 ## Repo layout
 
@@ -104,6 +129,11 @@ benchmarks/                 latency and ANN-vs-brute-force scripts
 notebooks/analysis.ipynb    the full analysis
 data/intent_labels_set_a.json   50 hand-labeled train queries
 ```
+## Production considerations
+Reranking dominates latency, so I would rerank fewer candidates (for example 20),
+use a distilled model or GPU batching, and cache frequent queries. For scale: an ANN
+index with sharding, incremental indexing for new documents, a /health endpoint, and
+metrics (p95 latency, error rate) plus a fixed query set to watch for relevance drift.
 
 ## Limitations
 
