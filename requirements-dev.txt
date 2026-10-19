@@ -1,0 +1,8 @@
+-r requirements.txt
+# Notebook, tests and benchmarks
+datasets>=2.19
+scikit-learn>=1.4
+jupyter
+pytest>=8.0
+httpx>=0.27
+faiss-cpu>=1.8
