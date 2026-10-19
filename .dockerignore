@@ -1,0 +1,7 @@
+.git
+data
+notebooks
+tests
+benchmarks
+__pycache__
+*.ipynb
