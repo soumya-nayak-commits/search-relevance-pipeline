@@ -40,7 +40,7 @@ Recall of the first stage: @10 = 0.783, @20 = 0.837, **@50 = 0.892**. About 11% 
 pip install -r requirements-dev.txt
 
 python -m src.build_index --out data/index      # embeds the corpus once, writes data/index/
-pytest                                          # metric and query-understanding tests
+pytest                                          # 14 tests: metrics checked against hand calculations, intent and entity rules
 jupyter notebook notebooks/analysis.ipynb
 
 uvicorn app:app --port 8000
